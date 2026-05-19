@@ -84,7 +84,7 @@
       color: var(--accent);
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.12em;
+      letter-spacing: 0;
       text-transform: uppercase;
     }
 
@@ -99,19 +99,19 @@
       margin-bottom: 0;
       font-size: clamp(28px, 8vw, 44px);
       line-height: 0.98;
-      letter-spacing: -0.06em;
+      letter-spacing: 0;
     }
 
     h2 {
       margin-bottom: 12px;
       font-size: 20px;
-      letter-spacing: -0.03em;
+      letter-spacing: 0;
     }
 
     h3 {
       margin-bottom: 4px;
       font-size: 17px;
-      letter-spacing: -0.02em;
+      letter-spacing: 0;
     }
 
     .icon-btn,
@@ -219,7 +219,7 @@
 
     .routine-title strong {
       font-size: 25px;
-      letter-spacing: -0.05em;
+      letter-spacing: 0;
     }
 
     .routine-badge {
@@ -368,14 +368,14 @@
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0;
     }
 
     .stat-box strong {
       display: block;
       margin-top: 5px;
       font-size: 16px;
-      letter-spacing: -0.03em;
+      letter-spacing: 0;
     }
 
     .action-grid {
@@ -394,7 +394,7 @@
       border-radius: 16px;
       padding: 12px 14px;
       font-weight: 850;
-      letter-spacing: -0.01em;
+      letter-spacing: 0;
     }
 
     .primary-btn {
@@ -459,7 +459,7 @@
       font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0;
     }
 
     input,
@@ -739,7 +739,7 @@
       font-size: 11px;
       font-weight: 850;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0;
       margin-bottom: 5px;
     }
 
@@ -980,7 +980,7 @@
               <h1 id="workoutTitle">Push</h1>
               <p id="workoutSubtitle">Chest, shoulders, triceps</p>
             </div>
-            <button id="newWorkoutBtn" class="icon-btn" type="button" aria-label="New workout">New</button>
+            <button id="newWorkoutBtn" class="icon-btn" type="button" aria-label="New workout">+</button>
           </div>
 
           <div class="stats-strip">
@@ -1158,6 +1158,20 @@
 
     function normalizeName(value) {
       return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
     }
 
     function inferDay(workout) {
@@ -1448,17 +1462,17 @@
         const setCount = totalPlannedSets(day);
         const lastLine = last ? "Last: " + last.date + " - " + formatNumber(calculateWorkoutVolume(last)) + " lbs" : "No workout saved yet";
         return `
-          <button class="routine-card" type="button" data-action="start-day" data-day="${day}">
+          <button class="routine-card" type="button" data-action="start-day" data-day="${escapeAttr(day)}">
             <div>
               <div class="routine-title">
-                <strong>${routine.title}</strong>
-                <span class="routine-badge">${routine.duration}</span>
+                <strong>${escapeHtml(routine.title)}</strong>
+                <span class="routine-badge">${escapeHtml(routine.duration)}</span>
               </div>
-              <p class="muted">${routine.subtitle}</p>
+              <p class="muted">${escapeHtml(routine.subtitle)}</p>
               <div class="routine-meta">
                 <span>${exerciseCount} exercises</span>
                 <span>${setCount} sets</span>
-                <span>${lastLine}</span>
+                <span>${escapeHtml(lastLine)}</span>
               </div>
             </div>
             <span class="routine-arrow" aria-hidden="true">Go</span>
@@ -1474,10 +1488,10 @@
         return `
           <div class="recent-item">
             <div>
-              <strong>${workout.date} - ${day}</strong>
+              <strong>${escapeHtml(workout.date)} - ${escapeHtml(day)}</strong>
               <span>${formatNumber(volume)} lbs - ${sets} completed sets</span>
             </div>
-            <button class="small-btn" type="button" data-action="start-day" data-day="${day}">Repeat</button>
+            <button class="small-btn" type="button" data-action="start-day" data-day="${escapeAttr(day)}">Repeat</button>
           </div>
         `;
       }).join("") : `<p class="empty-state">Your saved workouts will appear here.</p>`;
@@ -1531,7 +1545,7 @@
       els.exerciseNav.innerHTML = app.draft.exercises.map((exercise, index) => {
         const isActive = exercise.id === app.openExerciseId;
         const completed = exercise.sets.filter((set) => set.done).length;
-        return `<button class="chip ${isActive ? "active" : ""}" type="button" data-action="open-exercise" data-eid="${exercise.id}">${index + 1}. ${exercise.name} ${completed ? "(" + completed + ")" : ""}</button>`;
+        return `<button class="chip ${isActive ? "active" : ""}" type="button" data-action="open-exercise" data-eid="${escapeAttr(exercise.id)}">${index + 1}. ${escapeHtml(exercise.name)} ${completed ? "(" + completed + ")" : ""}</button>`;
       }).join("");
     }
 
@@ -1554,25 +1568,25 @@
       const deltaClass = !last || delta === 0 ? "flat" : delta > 0 ? "up" : "down";
 
       return `
-        <article id="exercise-${exercise.id}" class="exercise-card ${isOpen ? "" : "collapsed"}" data-eid="${exercise.id}">
-          <button class="exercise-head" type="button" data-action="toggle-exercise" data-eid="${exercise.id}">
+        <article id="exercise-${escapeAttr(exercise.id)}" class="exercise-card ${isOpen ? "" : "collapsed"}" data-eid="${escapeAttr(exercise.id)}">
+          <button class="exercise-head" type="button" data-action="toggle-exercise" data-eid="${escapeAttr(exercise.id)}">
             <div class="exercise-title-wrap">
               <div class="exercise-title-line">
                 <span class="exercise-index">${index + 1}</span>
-                <h3>${exercise.name}</h3>
+                <h3>${escapeHtml(exercise.name)}</h3>
               </div>
-              <p class="exercise-sub">${exercise.sets.length} sets - ${exercise.targetReps || plan.reps} reps - rest ${plan.rest || exercise.rest || 90}s</p>
+              <p class="exercise-sub">${exercise.sets.length} sets - ${escapeHtml(exercise.targetReps || plan.reps)} reps - rest ${formatNumber(plan.rest || exercise.rest || 90)}s</p>
             </div>
             <div>
-              <div class="target-chip">${target.label}</div>
+              <div class="target-chip">${escapeHtml(target.label)}</div>
               <span class="collapse-icon">^</span>
             </div>
           </button>
 
           <div class="exercise-body">
             <div class="coach-panel">
-              <strong>${suggestion.title}: ${suggestion.chip}</strong>
-              <p>${suggestion.text}</p>
+              <strong>${escapeHtml(suggestion.title)}: ${escapeHtml(suggestion.chip)}</strong>
+              <p>${escapeHtml(suggestion.text)}</p>
             </div>
 
             <div class="progress-row" style="border-bottom: 0; padding-top: 0;">
@@ -1580,13 +1594,13 @@
                 <strong>${doneCount} of ${exercise.sets.length} sets marked done</strong>
                 <span>${last ? "Last exercise volume: " + formatNumber(lastVolume) + " lbs" : "This will become your baseline."}</span>
               </div>
-              <span class="delta ${deltaClass}">${deltaLabel}</span>
+              <span class="delta ${deltaClass}">${escapeHtml(deltaLabel)}</span>
             </div>
 
             <div class="exercise-actions">
-              <button class="small-btn primary" type="button" data-action="fill-exercise-targets" data-eid="${exercise.id}">Fill targets</button>
-              <button class="small-btn" type="button" data-action="fill-exercise-last" data-eid="${exercise.id}">Use last</button>
-              <button class="small-btn" type="button" data-action="add-set" data-eid="${exercise.id}">Add set</button>
+              <button class="small-btn primary" type="button" data-action="fill-exercise-targets" data-eid="${escapeAttr(exercise.id)}">Fill targets</button>
+              <button class="small-btn" type="button" data-action="fill-exercise-last" data-eid="${escapeAttr(exercise.id)}">Use last</button>
+              <button class="small-btn" type="button" data-action="add-set" data-eid="${escapeAttr(exercise.id)}">Add set</button>
             </div>
 
             <div class="set-list">
@@ -1601,40 +1615,40 @@
       const target = getTargetForSet(app.day, exercise, setIndex);
       const rirOptions = ["", "0", "1", "2", "3", "4", "5"].map((value) => `<option value="${value}" ${String(set.rir) === value ? "selected" : ""}>${value === "" ? "RIR" : value}</option>`).join("");
       return `
-        <div class="set-row ${set.done ? "done" : ""}" data-eid="${exercise.id}" data-index="${setIndex}">
+        <div class="set-row ${set.done ? "done" : ""}" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}">
           <div class="set-topline">
             <div class="set-name">Set ${setIndex + 1} <span>${set.done ? "complete" : "open"}</span></div>
-            <div class="set-target">Target: ${target.weight ? target.weight + " x " : ""}${target.reps}</div>
+            <div class="set-target">Target: ${target.weight ? escapeHtml(target.weight) + " x " : ""}${escapeHtml(target.reps)}</div>
           </div>
 
           <div class="set-grid">
             <div class="mini-field">
               <label>Weight</label>
               <div class="input-stepper">
-                <button type="button" data-action="step-value" data-eid="${exercise.id}" data-index="${setIndex}" data-field="weight" data-dir="-1">-</button>
-                <input type="number" inputmode="decimal" data-field="weight" data-eid="${exercise.id}" data-index="${setIndex}" value="${set.weight}" placeholder="lbs" />
-                <button type="button" data-action="step-value" data-eid="${exercise.id}" data-index="${setIndex}" data-field="weight" data-dir="1">+</button>
+                <button type="button" data-action="step-value" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" data-field="weight" data-dir="-1">-</button>
+                <input type="number" inputmode="decimal" data-field="weight" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" value="${escapeAttr(set.weight)}" placeholder="lbs" />
+                <button type="button" data-action="step-value" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" data-field="weight" data-dir="1">+</button>
               </div>
             </div>
 
             <div class="mini-field">
               <label>Reps</label>
               <div class="input-stepper">
-                <button type="button" data-action="step-value" data-eid="${exercise.id}" data-index="${setIndex}" data-field="reps" data-dir="-1">-</button>
-                <input type="number" inputmode="numeric" data-field="reps" data-eid="${exercise.id}" data-index="${setIndex}" value="${set.reps}" placeholder="reps" />
-                <button type="button" data-action="step-value" data-eid="${exercise.id}" data-index="${setIndex}" data-field="reps" data-dir="1">+</button>
+                <button type="button" data-action="step-value" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" data-field="reps" data-dir="-1">-</button>
+                <input type="number" inputmode="numeric" data-field="reps" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" value="${escapeAttr(set.reps)}" placeholder="reps" />
+                <button type="button" data-action="step-value" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}" data-field="reps" data-dir="1">+</button>
               </div>
             </div>
 
             <div class="mini-field">
               <label>RIR</label>
-              <select data-field="rir" data-eid="${exercise.id}" data-index="${setIndex}">${rirOptions}</select>
+              <select data-field="rir" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}">${rirOptions}</select>
             </div>
           </div>
 
           <div class="set-actions">
-            <button class="small-btn" type="button" data-action="fill-set-target" data-eid="${exercise.id}" data-index="${setIndex}">Fill target</button>
-            <button class="done-toggle ${set.done ? "is-done" : ""}" type="button" data-action="toggle-set-done" data-eid="${exercise.id}" data-index="${setIndex}">${set.done ? "Done" : "Mark done"}</button>
+            <button class="small-btn" type="button" data-action="fill-set-target" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}">Fill target</button>
+            <button class="done-toggle ${set.done ? "is-done" : ""}" type="button" data-action="toggle-set-done" data-eid="${escapeAttr(exercise.id)}" data-index="${setIndex}">${set.done ? "Done" : "Mark done"}</button>
           </div>
         </div>
       `;
@@ -1655,21 +1669,21 @@
         <div class="progress-row">
           <div>
             <strong>Session volume</strong>
-            <span>${lastWorkout ? "Last " + day + ": " + formatNumber(lastVolume) + " lbs on " + lastWorkout.date : "No saved " + day + " workout yet"}</span>
+            <span>${lastWorkout ? "Last " + escapeHtml(day) + ": " + formatNumber(lastVolume) + " lbs on " + escapeHtml(lastWorkout.date) : "No saved " + escapeHtml(day) + " workout yet"}</span>
           </div>
-          <span class="delta ${!lastWorkout || delta === 0 ? "flat" : delta > 0 ? "up" : "down"}">${deltaText}</span>
+          <span class="delta ${!lastWorkout || delta === 0 ? "flat" : delta > 0 ? "up" : "down"}">${escapeHtml(deltaText)}</span>
         </div>
         <div class="progress-row">
           <div>
             <strong>Next set</strong>
-            <span>${nextOpen ? nextOpen.exercise.name + " - set " + (nextOpen.index + 1) : "All sets marked done"}</span>
+            <span>${nextOpen ? escapeHtml(nextOpen.exercise.name) + " - set " + (nextOpen.index + 1) : "All sets marked done"}</span>
           </div>
           <span class="delta flat">${calculateDoneCount(app.draft)} / ${calculateSetCount(app.draft)}</span>
         </div>
         <div class="progress-row">
           <div>
             <strong>Biggest volume today</strong>
-            <span>${topExercise ? topExercise.name : "No sets logged"}</span>
+            <span>${topExercise ? escapeHtml(topExercise.name) : "No sets logged"}</span>
           </div>
           <span class="delta flat">${topExercise ? formatNumber(calculateExerciseVolume(topExercise)) + " lbs" : "0 lbs"}</span>
         </div>

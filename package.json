@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "vercel dev"
+    "dev": "npx vercel dev",
+    "start": "npx vercel dev",
+    "check": "node -e \"const fs=require('fs'); const html=fs.readFileSync('index.html','utf8'); const js=html.match(/<script>([\\s\\S]*)<\\/script>/)[1]; new Function(js); console.log('HTML script syntax OK');\""
   }
 }
